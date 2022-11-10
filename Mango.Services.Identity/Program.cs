@@ -1,5 +1,6 @@
 using Mango.Services.Identity;
 using Mango.Services.Identity.Data;
+using Mango.Services.Identity.Initializer;
 using Mango.Services.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ var builderS = builder.Services.AddIdentityServer(options =>
     .AddInMemoryClients(SD.Clients)
     .AddAspNetIdentity<ApplicationUser>();
 
+builder.Services.AddScoped<IDbInittializer, DbInitializer>();
 builderS.AddDeveloperSigningCredential();// in production: store your key some whare
 builder.Services.AddControllersWithViews();
 
@@ -48,8 +50,21 @@ app.UseIdentityServer();
 
 app.UseAuthorization();
 
+SeedDatabase();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+
+void SeedDatabase()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInittializer>();
+        // use dbInitializer
+        dbInitializer.Initialize();
+    }
+}
