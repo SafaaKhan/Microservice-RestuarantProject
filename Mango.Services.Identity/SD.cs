@@ -42,8 +42,8 @@ namespace Mango.Services.Identity
                     ClientId="mango",
                     ClientSecrets={new Secret("secret".Sha256())},//in production, you will have a secret key
                     AllowedGrantTypes=GrantTypes.Code, //more than one grant type can be used
-                    RedirectUris={"https://localhost:44392/signin-oidc"},
-                    PostLogoutRedirectUris={ "https://localhost:44392/signout-callback-oidc" },
+                    RedirectUris={"https://localhost:7279/signin-oidc"}, //applicationUrl port
+                    PostLogoutRedirectUris={ "https://localhost:7279/signout-callback-oidc" },
                     AllowedScopes=new List<string>
                     {
                         IdentityServerConstants.StandardScopes.OpenId,

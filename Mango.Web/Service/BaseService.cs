@@ -2,6 +2,7 @@
 using Mango.Web.Models.Dtos;
 using Mango.Web.Service.IService;
 using Newtonsoft.Json;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace Mango.Web.Service
@@ -33,6 +34,11 @@ namespace Mango.Web.Service
                         Encoding.UTF8,"application/json");
                 }
 
+                if (!string.IsNullOrEmpty(apiRequest.AccessToken))
+                {
+                    client.DefaultRequestHeaders.Authorization=new AuthenticationHeaderValue("Bearer",apiRequest.AccessToken);
+                }
+
                 HttpResponseMessage apiResponse = null;
                 switch (apiRequest.ApiType)
                 {
@@ -52,7 +58,7 @@ namespace Mango.Web.Service
                 apiResponse = await client.SendAsync(message);
 
                 var apiContent=await apiResponse.Content.ReadAsStringAsync();
-                var apiResponseDto = JsonConvert.DeserializeObject<T>(apiContent);
+                var apiResponseDto = JsonConvert.DeserializeObject<T>(apiContent);//understand code
                 return apiResponseDto;
 
             }catch(Exception ex)
