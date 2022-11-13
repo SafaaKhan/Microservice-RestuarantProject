@@ -1,18 +1,18 @@
 using AutoMapper;
-using Mango.Service.ProductAPI;
-using Mango.Service.ProductAPI.Data;
-using Mango.Service.ProductAPI.Repositories;
-using Mango.Service.ProductAPI.Repositories.IRepositroy;
+using Mango.Services.ShoppingCart;
+using Mango.Services.ShoppingCart.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+//connection string with db context
+
 var connectonString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options=>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(connectonString));
 
 //autoMapper
@@ -20,7 +20,7 @@ IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());//search!!!!!!!
 
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+//builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddControllers();
 
 builder.Services.AddAuthentication("Bearer").
@@ -29,7 +29,7 @@ builder.Services.AddAuthentication("Bearer").
         options.Authority = builder.Configuration["ServiceURLs:IdentityAPI"]; //identityserver
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateAudience = false//change to true for policy testing
+            ValidateAudience = true//change to true for policy testing
         };
     });
 
@@ -48,15 +48,16 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mango.Services.ProductAPI", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mango.Services.ShoppingCartAPI", Version = "v1" });
+    // add c.SwaggerDoc
     c.EnableAnnotations();
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description=@"Enter 'Bearer' [space] and you token",
-        Name="Authorization",
-        In=ParameterLocation.Header,
-        Type=SecuritySchemeType.ApiKey,
-        Scheme="Bearer"
+        Description = @"Enter 'Bearer' [space] and you token",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement {
@@ -77,7 +78,7 @@ builder.Services.AddSwaggerGen(c =>
 
                 });
 
-}) ;
+});
 
 var app = builder.Build();
 
