@@ -1,0 +1,9 @@
+﻿using Mango.Services.CouponAPI.Models.Dtos;
+
+namespace Mango.Services.CouponAPI.Repositories
+{
+    public interface ICouponRepository
+    {
+        Task<CouponDto> GetCouponByCodeAsync(string couponCode);
+    }
+}

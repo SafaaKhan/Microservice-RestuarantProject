@@ -13,7 +13,7 @@ namespace Mango.Web.Service
             _httpClient = httpClient;
         }
 
-        public async Task<T> AddToCartAsync<T>(CartDto cartDto, string? token = null)
+        public async Task<T> AddToCartAsync<T>(CartDto cartDto, string token = null)
         {
             return await this.SendAsync<T>(new ApiRequest()
             {
@@ -24,7 +24,18 @@ namespace Mango.Web.Service
             });
         }
 
-        public async Task<T> GetCartByUserIdAsync<T>(string userId, string? token = null)
+        public async Task<T> ApplyCouponAsync<T>(CartDto cartDto, string token = null)
+        {
+            return await this.SendAsync<T>(new ApiRequest()
+            {
+                ApiType = SD.ApiType.POST,
+                Data = cartDto,
+                URL = SD.ShoppingCartAPIBase + "api/cart/applyCoupon",
+                AccessToken = token
+            });
+        }
+
+        public async Task<T> GetCartByUserIdAsync<T>(string userId, string token = null)
         {
             return await this.SendAsync<T>(new ApiRequest()
             {
@@ -34,7 +45,18 @@ namespace Mango.Web.Service
             });
         }
 
-        public async Task<T> RemoveFromCartAsync<T>(int cartId, string? token = null)
+        public async Task<T> RemoveCouponAsync<T>(string userId, string token = null)
+        {
+            return await this.SendAsync<T>(new ApiRequest()
+            {
+                ApiType = SD.ApiType.POST,
+                Data = userId,
+                URL = SD.ShoppingCartAPIBase + "api/cart/removeCoupon",
+                AccessToken = token
+            });
+        }
+
+        public async Task<T> RemoveFromCartAsync<T>(int cartId, string token = null)
         {
             return await this.SendAsync<T>(new ApiRequest()
             {
@@ -45,7 +67,7 @@ namespace Mango.Web.Service
             });
         }
 
-        public async Task<T> UpdateCartAsync<T>(CartDto cartDto, string? token = null)
+        public async Task<T> UpdateCartAsync<T>(CartDto cartDto, string token = null)
         {
             return await this.SendAsync<T>(new ApiRequest()
             {
