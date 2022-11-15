@@ -1,6 +1,9 @@
-﻿namespace Mango.Web.Models.Dtos
+﻿using Mango.MessageBus;
+using Mango.Services.ShoppingCart.Models.Dto;
+
+namespace Mango.Services.ShoppingCart.Messages
 {
-    public class CartHeaderDto
+    public class CheckoutHeaderDto:BaseMessage
     {
         public int CartHeaderId { get; set; }
         public string UserId { get; set; } = string.Empty;
@@ -15,7 +18,8 @@
         public string CardNumber { get; set; } = string.Empty;
         public string CVV { get; set; } = string.Empty;
         public string ExpiryMonthYear { get; set; } = string.Empty;
-
+        public int CartTotalItems { get; set; }
+        public IEnumerable<CartDetailsDto> CartDetails { get; set; }
 
 
     }

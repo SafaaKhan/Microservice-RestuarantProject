@@ -7,18 +7,18 @@ namespace Mango.Services.CouponAPI.Controllers
 {
     [ApiController]
     [Route("api/coupon")]
-    public class CouponController : ControllerBase
+    public class CouponAPIController : ControllerBase
     {
         private readonly ICouponRepository _couponRepository;
         protected ResponseDto _responseDto;
-        public CouponController(ICouponRepository couponRepository)
+        public CouponAPIController(ICouponRepository couponRepository)
         {
             _couponRepository = couponRepository;
             this._responseDto=new ResponseDto();
         }
 
-        [Authorize]
-        [HttpGet]
+       // [Authorize] does not work
+        [HttpGet("{code}")]
         public async Task<object> GetDiscoutForCode(string code)
         {
             try

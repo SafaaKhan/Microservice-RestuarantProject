@@ -1,4 +1,6 @@
-﻿using Mango.Services.ShoppingCart.Models.Dto;
+﻿using Mango.MessageBus;
+using Mango.Services.ShoppingCart.Messages;
+using Mango.Services.ShoppingCart.Models.Dto;
 using Mango.Services.ShoppingCart.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,15 +8,18 @@ namespace Mango.Services.ShoppingCart.Controllers
 {
     [ApiController]
     [Route("api/cart")]
-    public class CartController : ControllerBase
+    public class CartAPIController : ControllerBase
     {
         private readonly ICartRepository _cartRepository;
+        private readonly IMessageBus _messageBus;
         protected ResponseDto _response;
 
-        public CartController(ICartRepository cartRepository)
+        public CartAPIController(ICartRepository cartRepository,
+            IMessageBus messageBus)
         {
             _cartRepository = cartRepository;
             this._response = new ResponseDto();
+            _messageBus = messageBus;
         }
 
         [HttpGet("getCart/{userId}")]
@@ -128,6 +133,28 @@ namespace Mango.Services.ShoppingCart.Controllers
                 bool isSuccess = await _cartRepository.ClearCart(userId);
                 _response.Result = isSuccess;
 
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessage = new List<string>() { ex.ToString() };
+            }
+            return _response;
+        }
+
+        [HttpPost("checkout")]
+        public async Task<object> Checkout(CheckoutHeaderDto checkoutHeaderDto)
+        {
+            try
+            {
+                CartDto cartDto = await _cartRepository.GetCartByUserId(checkoutHeaderDto.UserId);
+                if(cartDto == null)
+                {
+                    return BadRequest();
+                }
+                checkoutHeaderDto.CartDetails = cartDto.CartDetails;
+                //some logic to add msg to process order //topic name: add it in the appsettigns
+                await _messageBus.PublishMessage(checkoutHeaderDto, "checkoutmessagetopic");
             }
             catch (Exception ex)
             {
