@@ -1,16 +1,16 @@
 using AutoMapper;
-using Mango.MessageBus;
-using Mango.Services.ShoppingCart;
-using Mango.Services.ShoppingCart.Data;
-using Mango.Services.ShoppingCart.Repositories;
+using Mango.Services.OrderAPI.Data;
+using Mango.Services.OrderAPI.Extension;
+using Mango.Services.OrderAPI.Messaging;
+using Mango.Services.OrderAPI.Repository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 //connection string with db context
 
 var connectonString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -18,16 +18,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(connectonString));
 
 //autoMapper
-IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
-builder.Services.AddSingleton(mapper);
+//IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
+//builder.Services.AddSingleton(mapper);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());//search!!!!!!!
 
-builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-builder.Services.AddScoped<IMessageBus, AzureServiceBusMessageBus>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();//you can remove it, since you added sigleton
+
+var optionBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+optionBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+builder.Services.AddSingleton(new OrderRepository(optionBuilder.Options));
+builder.Services.AddSingleton<IAzureServiceBusConsumer, AzureServiceBusConsumer>();
+
 builder.Services.AddControllers();
-builder.Services.AddHttpClient<ICouponRepository, CouponRepository>(x => x.BaseAddress =
-  new Uri(builder.Configuration["ServiceURLs:CouponAPI"]));
+
 builder.Services.AddAuthentication("Bearer").
     AddJwtBearer("Bearer", options =>
     {
@@ -53,9 +57,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mango.Services.ShoppingCartAPI", Version = "v1" });
-    // add c.SwaggerDoc
-    c.EnableAnnotations();
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mango.Services.OrderAPI", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = @"Enter 'Bearer' [space] and you token",
@@ -85,6 +87,7 @@ builder.Services.AddSwaggerGen(c =>
 
 });
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -95,11 +98,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseServiceBusAzureConsumer();
 
 app.Run();
+
